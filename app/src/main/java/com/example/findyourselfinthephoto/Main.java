@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.findyourselfinthephoto.Fragments.FAQ;
+import com.example.findyourselfinthephoto.Fragments.History;
 import com.example.findyourselfinthephoto.Fragments.Home;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -20,7 +21,13 @@ public class Main extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.findViewById(R.id.nav_home).performClick();
+
         bottomNavigationView.setOnNavigationItemSelectedListener(navigationItemSelectedListener);
+
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                new Home()).commit();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener =
@@ -36,6 +43,9 @@ public class Main extends AppCompatActivity {
                             break;
                         case R.id.nav_faq:
                             selectedFragment = new FAQ();
+                            break;
+                        case R.id.nav_history:
+                            selectedFragment = new History();
                             break;
                     }
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
