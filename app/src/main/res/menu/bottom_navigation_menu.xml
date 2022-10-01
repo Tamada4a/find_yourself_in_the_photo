@@ -2,6 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/nav_history"
+        android:icon="@drawable/history_button_selector"
+        android:title="History"
+        />
+
+    <item
         android:id="@+id/nav_home"
         android:icon="@drawable/home_button_selector"
         android:title="Home"
@@ -12,5 +18,6 @@
         android:icon="@drawable/faq_button_selector"
         android:title="FAQ"
         />
+
 
 </menu>
