@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/home_background"
     tools:context=".Fragments.Home">
 
     <TextView
@@ -14,15 +15,14 @@
         android:layout_centerInParent="true"/>
 
     <ImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/upload_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="-3dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="110dp"
-        android:src="@drawable/uploadPhotoButton" />
+        android:layout_marginTop="430dp"
+        android:layout_marginEnd="37dp"
+        android:background=""
+        android:scaleType="fitEnd"
+        android:src="@drawable/upload_button" />
 
 </RelativeLayout>
