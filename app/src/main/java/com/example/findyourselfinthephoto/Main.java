@@ -3,6 +3,7 @@ package com.example.findyourselfinthephoto;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
