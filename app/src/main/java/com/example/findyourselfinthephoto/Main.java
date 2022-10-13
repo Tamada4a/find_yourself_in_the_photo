@@ -24,7 +24,7 @@ public class Main extends AppCompatActivity {
         bottomNavigationView.findViewById(R.id.nav_home).performClick();
 
         bottomNavigationView.setOnNavigationItemSelectedListener(navigationItemSelectedListener);
-
+        bottomNavigationView.setItemIconTintList(null);
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new Home()).commit();
@@ -47,6 +47,7 @@ public class Main extends AppCompatActivity {
                         case R.id.nav_history:
                             selectedFragment = new History();
                             break;
+
                     }
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                             selectedFragment).commit();
