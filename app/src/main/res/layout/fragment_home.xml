@@ -9,15 +9,40 @@
 
 
     <ImageButton
-        android:id="@+id/upload_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/upload_buttonEX"
+        android:layout_width="336dp"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="430dp"
-        android:layout_marginEnd="37dp"
+        android:layout_marginEnd="27dp"
+        android:layout_marginBottom="46dp"
         android:background="@null"
-        android:scaleType="fitEnd"
+        android:scaleType="fitCenter"
         android:src="@drawable/upload_button" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/upload_button"
+        android:layout_width="372dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="183dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="183dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/uploadphoto_round"
+        app:civ_border_color="#FF000000"
+        app:civ_border_width="3dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.476" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -45,6 +70,11 @@
             android:textSize="30sp"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
+            android:inputType="text|textNoSuggestions|textVisiblePassword"
+            android:textCursorDrawable="@drawable/cursor"
+
+
+            android:hint ="Your Link"
 
             />
     </LinearLayout>
