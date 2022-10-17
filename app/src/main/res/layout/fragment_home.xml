@@ -9,7 +9,7 @@
 
 
     <ImageButton
-        android:id="@+id/upload_buttonEX"
+        android:id="@+id/start_button"
         android:layout_width="336dp"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -20,7 +20,7 @@
         android:layout_marginBottom="46dp"
         android:background="@null"
         android:scaleType="fitCenter"
-        android:src="@drawable/upload_button" />
+        android:src="@drawable/start_button" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/upload_button"
