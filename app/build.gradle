@@ -22,8 +22,14 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        exclude 'META-INF/native-image/**/**.json'
+        exclude 'META-INF/native-image/*.json'
+        pickFirst 'nd4j-native.properties'
     }
 }
 
@@ -36,6 +42,19 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-    //круглые фотки
-    implementation 'de.hdodenhof:circleimageview:3.1.0'
+    implementation 'de.hdodenhof:circleimageview:3.1.0' //rounded photos
+
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0' //get-requests
+    implementation 'com.sezinkarli:random-user-agent-generator:1.3' //random user-agent
+
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(path: ':OpenCVLibrary')
+
+    implementation 'com.github.onimur:handle-path-oz:1.0.7' //handle real path
+
+    //deep-learning
+    implementation 'org.deeplearning4j:deeplearning4j-core:1.0.0-M1.1'
+    implementation 'org.nd4j:nd4j-native-platform:1.0.0-M1.1'
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.0" //fix for deep-learning
+
 }
