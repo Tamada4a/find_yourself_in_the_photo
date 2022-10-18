@@ -216,7 +216,7 @@ public class GetRecognizedFaceUrl {
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            System.out.println("\nYou 've been recognized on 4 photos");
+            System.out.println("\nYou 've been recognized on " + recognized_array.size() + " photos");
         }
 
         private ArrayList<Mat> extractFaces(Mat image){
