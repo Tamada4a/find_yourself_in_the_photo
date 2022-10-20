@@ -40,85 +40,13 @@ import okhttp3.Response;
 public class GetRecognizedFaceUrl {
 
     private static CascadeClassifier cascadeClassifier;
-    private static ArrayList<String> recognized_array = new ArrayList<String>();
+    private static ArrayList<String> recognized_array;
 
     public static void compare_image(String img_1, ArrayList<String> UrlArray, Activity activity) {
         initialize(activity);
 
-        for(int i = 0; i < UrlArray.size(); ++i){
-            MyRequests requests = new MyRequests(UrlArray.get(i), img_1);
-            requests.execute();
-            /*OkHttpClient client = new OkHttpClient();
-            String curUrl = UrlArray.get(i);
-
-            Request request = new Request.Builder()
-                    .url(curUrl)
-                    .header("User-Agent", RandomUserAgentGenerator.getNextMobile())
-                    .build();
-
-            int finalI = i;
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    System.out.println(finalI + " ВСё ХУЕВО");
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    byte[] bytes = response.body().bytes();
-
-                    Mat mat_1 = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
-
-                    MatOfRect faceDetections = new MatOfRect();
-                    cascadeClassifier.detectMultiScale(mat_1, faceDetections);
-                    System.out.println(finalI + " " + curUrl);
-
-                    System.out.println(String.format("Detected %s faces",
-                            faceDetections.toArray().length));
-
-                    Mat mat_2 = Imgcodecs.imread(img_1);
-                    Mat hist_1 = new Mat();
-                    Mat hist_2 = new Mat();
-
-
-                    MatOfFloat ranges = new MatOfFloat(0f, 256f);
-                    MatOfInt histSize = new MatOfInt(1000);
-
-                    Imgproc.calcHist(Arrays.asList(mat_1), new MatOfInt(0), new Mat(), hist_1, histSize, ranges);
-                    Imgproc.calcHist(Arrays.asList(mat_2), new MatOfInt(0), new Mat(), hist_2, histSize, ranges);
-
-                    double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
-
-                    if(res > 0.6)
-                        recognized_array.add(curUrl);
-
-                    System.gc();
-                }
-            });*/
-        }
-
-
-        /*Mat mat_1 = Imgcodecs.imread(img_1);
-        Mat mat_2 = Imgcodecs.imread(img_2);
-        Mat hist_1 = new Mat();
-        Mat hist_2 = new Mat();
-
-
-        MatOfFloat ranges = new MatOfFloat(0f, 256f);
-        MatOfInt histSize = new MatOfInt(1000);
-
-        Imgproc.calcHist(Arrays.asList(mat_1), new MatOfInt(0), new Mat(), hist_1, histSize, ranges);
-        Imgproc.calcHist(Arrays.asList(mat_2), new MatOfInt(0), new Mat(), hist_2, histSize, ranges);
-
-        double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
-
-        System.out.println(res);*/
-
-        //return res > 0.6;
-        /*System.out.println("size is: " + recognized_array.size());
-        for(int i = 0; i < recognized_array.size(); ++ i)
-            System.out.println("Recognized on: " + recognized_array.get(i));
-        return recognized_array;*/
+        MyRequests requests = new MyRequests(UrlArray, img_1);
+        requests.execute();
     }
 
     private static void initialize(Activity activity) {
@@ -159,56 +87,62 @@ public class GetRecognizedFaceUrl {
 
         private final OkHttpClient client = new OkHttpClient();
 
-        private String curUrl;
+        private ArrayList<String> UrlArray;
         private String img_1;
 
-        public MyRequests(String url, String img_1){
-            curUrl = url;
+        public MyRequests(ArrayList<String> urlArr, String img_1){
+            recognized_array = new ArrayList<String>();
+            UrlArray = urlArr;
             this.img_1 = img_1;
         }
 
         @Override
         protected Object doInBackground(Object[] objects) {
-            Request request = new Request.Builder()
-                    .url(curUrl)
-                    .header("User-Agent", RandomUserAgentGenerator.getNextMobile())
-                    .build();
 
-            try {
-                Response response = client.newCall(request).execute();
+            for(int i = 0; i < UrlArray.size(); ++i) {
+                String curUrl = UrlArray.get(i);
 
-                byte[] bytes = response.body().bytes();
+                Request request = new Request.Builder()
+                        .url(curUrl)
+                        .header("User-Agent", RandomUserAgentGenerator.getNextMobile())
+                        .build();
 
-                Mat mat_1 = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
+                try {
+                    Response response = client.newCall(request).execute();
 
-                ArrayList<Mat> FacesArray = extractFaces(mat_1);
+                    byte[] bytes = response.body().bytes();
 
-                if(!FacesArray.isEmpty()) {
-                    Mat mat_2 = Imgcodecs.imread(img_1);//extractFaces().get(0);
+                    Mat mat_1 = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
 
-                    for(int i = 0; i < FacesArray.size(); ++i) {
+                    ArrayList<Mat> FacesArray = extractFaces(mat_1);
 
-                        Mat src = FacesArray.get(i);
+                    if (!FacesArray.isEmpty()) {
+                        Mat mat_2 = Imgcodecs.imread(img_1);//extractFaces().get(0);
 
-                        Mat hist_1 = new Mat();
-                        Mat hist_2 = new Mat();
+                        for (int j = 0; j < FacesArray.size(); ++j) {
 
-                        MatOfFloat ranges = new MatOfFloat(0f, 256f);
-                        MatOfInt histSize = new MatOfInt(1000);
+                            Mat src = FacesArray.get(j);
 
-                        Imgproc.calcHist(Arrays.asList(src), new MatOfInt(0), new Mat(), hist_1, histSize, ranges);
-                        Imgproc.calcHist(Arrays.asList(mat_2), new MatOfInt(0), new Mat(), hist_2, histSize, ranges);
+                            Mat hist_1 = new Mat();
+                            Mat hist_2 = new Mat();
 
-                        double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
+                            MatOfFloat ranges = new MatOfFloat(0f, 256f);
+                            MatOfInt histSize = new MatOfInt(1000);
 
-                        if (res > 0.7) {
-                            recognized_array.add(curUrl);
-                            System.out.println("You 've been recognized with " + res + " here\n" + curUrl);
+                            Imgproc.calcHist(Arrays.asList(src), new MatOfInt(0), new Mat(), hist_1, histSize, ranges);
+                            Imgproc.calcHist(Arrays.asList(mat_2), new MatOfInt(0), new Mat(), hist_2, histSize, ranges);
+
+                            double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
+
+                            if (res > 0.7) {
+                                recognized_array.add(curUrl);
+                                System.out.println("You 've been recognized with " + res + " here\n" + curUrl);
+                            }
                         }
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
             return 1;
         }
