@@ -14,6 +14,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -38,8 +42,6 @@ import okhttp3.Response;
 
 
 public class Home extends Fragment implements HandlePathOzListener.SingleUri {
-
-    private static final int GALLERYPICK = 1;
 
     private FragmentActivity activity;
 
@@ -90,18 +92,23 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         Intent galleryIntent = new Intent();
         galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
         galleryIntent.setType("image/*");
-        startActivityForResult(galleryIntent, GALLERYPICK);
+        startActivityIntent.launch(galleryIntent);
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    ActivityResultLauncher<Intent> startActivityIntent = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent data = result.getData();
 
-        if (requestCode == GALLERYPICK && resultCode == RESULT_OK && data != null) {
-            Uri ImageUri = data.getData();
-            upload_button.setImageURI(ImageUri);
-            handlePathOz.getRealPath(ImageUri);
-        }
-    }
+                        Uri ImageUri = data.getData();
+                        upload_button.setImageURI(ImageUri);
+                        handlePathOz.getRealPath(ImageUri);
+                    }
+                }
+            });
 
     @Override
     public void onRequestHandlePathOz(@NonNull PathOz pathOz, @Nullable Throwable throwable) {
@@ -120,18 +127,6 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         GetRecognizedFaceUrl.compare_image(realPath, result, activity);
     }
 
-    //private void showFileChooser() {
-//Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//intent.setType("*/*");
-/*intent.addCategory(Intent.CATEGORY_OPENABLE);
-Intent chooser = Intent.createChooser(intent, "Select a file to Upload");
-
-try {
-startActivityForResult(chooser, 0);
-} catch (android.content.ActivityNotFoundException ex) {
-Toast.makeText(getActivity(), "Install a File Manager!", Toast.LENGTH_SHORT).show();
-}*/
-//}
     private class MyRequests extends AsyncTask {
         private final OkHttpClient client = new OkHttpClient();
 
