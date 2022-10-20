@@ -115,14 +115,15 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         realPath = pathOz.getPath();
     }
 
-    private void HandleResponse(String response) throws ParseException {
+    private void HomeHandleResponse(String response) throws ParseException {
         this.response = response;
         System.out.println("RESPONSE IS " + response);
 
-        ArrayList<String> result = MyJson.getUrlArray(response, "YandexDisk");
+        ArrayList<ArrayList<String>> result = MyJson.getUrlArray(response, "YandexDisk");
 
-        for (int i = 0; i < result.size(); ++i)
-            System.out.println("Ссылка №" + i + " " + result.get(i));
+        int size = result.get(0).size();
+        for (int i = 0; i < size; ++i)
+            System.out.println("Ссылка №" + i + "\n" + result.get(0).get(i) + "\n" + result.get(1).get(i));
 
         GetRecognizedFaceUrl.compare_image(realPath, result, activity);
     }
@@ -169,7 +170,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                 Toast.makeText(fragmentActivity, "Ошибка доступа по ссылке. Попробуйте ещё раз", Toast.LENGTH_SHORT).show();
             else {
                 try {
-                    HandleResponse(response_string);
+                    HomeHandleResponse(response_string);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }

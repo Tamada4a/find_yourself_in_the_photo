@@ -10,21 +10,24 @@ import java.util.Objects;
 
 public class MyJson {
 
-    private static ArrayList<String> subResult;
+    private static ArrayList<ArrayList<String>> subResult;
     private static String[] keys;
 
-    public static ArrayList<String> getUrlArray(String json_string, String storageName) throws ParseException {
+    public static ArrayList<ArrayList<String>> getUrlArray(String json_string, String storageName) throws ParseException {
 
         if(Objects.equals(storageName, "YandexDisk")){
-            subResult = new ArrayList<String>();
-            keys = new String[]{"_embedded", "items", "preview"};
+            subResult = new ArrayList<>();
+            subResult.add(new ArrayList<>());
+            subResult.add(new ArrayList<>());
+
+            keys = new String[]{"_embedded", "items", "preview", "file"};
             return getYandexUrlArray(json_string, keys);
         }
 
         return null;
     }
 
-    private static ArrayList<String> getYandexUrlArray(String json_string, String[] keys) throws ParseException {
+    private static ArrayList<ArrayList<String>> getYandexUrlArray(String json_string, String[] keys) throws ParseException {
 
         Object obj = new JSONParser().parse(json_string);
         JSONObject jo = (JSONObject) obj;
@@ -35,7 +38,8 @@ public class MyJson {
 
         for (Object o : tempArr) {
             JSONObject test = (JSONObject) o;
-            subResult.add(test.get(keys[2]).toString().replace("size=S", "size=2048x2048"));
+            subResult.get(0).add(test.get(keys[2]).toString().replace("size=S", "size=2048x2048"));
+            subResult.get(1).add(test.get(keys[3]).toString());
         }
 
         return subResult;

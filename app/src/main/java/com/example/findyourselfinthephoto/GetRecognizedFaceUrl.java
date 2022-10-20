@@ -32,7 +32,6 @@ import okhttp3.Response;
  * 1) инициализировать CascadeClassifier
  *  1а) натренировать cascade свой
  * 2) передать в нейронку все фотки для обучения
- * 3) пробегаться по всем спаршеным ссылкам, делая запрос
  * 4) выделить лица с помощью OpenCV
  * 5) с помощью нейронки выделять похожие лица
  * */
@@ -40,9 +39,9 @@ import okhttp3.Response;
 public class GetRecognizedFaceUrl {
 
     private static CascadeClassifier cascadeClassifier;
-    private static ArrayList<String> recognized_array;
+    private static ArrayList<ArrayList<String>> recognized_array;
 
-    public static void compare_image(String img_1, ArrayList<String> UrlArray, Activity activity) {
+    public static void compare_image(String img_1, ArrayList<ArrayList<String>> UrlArray, Activity activity) {
         initialize(activity);
 
         MyRequests requests = new MyRequests(UrlArray, img_1);
@@ -87,11 +86,14 @@ public class GetRecognizedFaceUrl {
 
         private final OkHttpClient client = new OkHttpClient();
 
-        private ArrayList<String> UrlArray;
+        private ArrayList<ArrayList<String>> UrlArray;
         private String img_1;
 
-        public MyRequests(ArrayList<String> urlArr, String img_1){
-            recognized_array = new ArrayList<String>();
+        public MyRequests(ArrayList<ArrayList<String>> urlArr, String img_1){
+            recognized_array = new ArrayList<>();
+            recognized_array.add(new ArrayList<>());
+            recognized_array.add(new ArrayList<>());
+
             UrlArray = urlArr;
             this.img_1 = img_1;
         }
@@ -99,8 +101,9 @@ public class GetRecognizedFaceUrl {
         @Override
         protected Object doInBackground(Object[] objects) {
 
-            for(int i = 0; i < UrlArray.size(); ++i) {
-                String curUrl = UrlArray.get(i);
+            for(int i = 0; i < UrlArray.get(0).size(); ++i) {
+                String curUrl = UrlArray.get(0).get(i);
+                String curDonwloadUrl = UrlArray.get(1).get(i);
 
                 Request request = new Request.Builder()
                         .url(curUrl)
@@ -135,7 +138,8 @@ public class GetRecognizedFaceUrl {
                             double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
 
                             if (res > 0.7) {
-                                recognized_array.add(curUrl);
+                                recognized_array.get(0).add(curUrl);
+                                recognized_array.get(1).add(curDonwloadUrl);
                                 System.out.println("You 've been recognized with " + res + " here\n" + curUrl);
                             }
                         }
@@ -150,7 +154,7 @@ public class GetRecognizedFaceUrl {
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            System.out.println("\nYou 've been recognized on " + recognized_array.size() + " photos");
+            System.out.println("\nYou 've been recognized on " + recognized_array.get(0).size() + " photos");
         }
 
         private ArrayList<Mat> extractFaces(Mat image){
@@ -158,10 +162,6 @@ public class GetRecognizedFaceUrl {
 
             MatOfRect faceDetections = new MatOfRect();
             cascadeClassifier.detectMultiScale(image, faceDetections);
-
-            /*System.out.println(curUrl);
-            System.out.println(String.format("Detected %s faces",
-                    faceDetections.toArray().length));*/
 
             if(!faceDetections.empty())
                 for (Rect rect : faceDetections.toArray()) {
