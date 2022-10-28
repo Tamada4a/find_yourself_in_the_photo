@@ -72,10 +72,7 @@
             android:paddingRight="15dp"
             android:inputType="text|textNoSuggestions|textVisiblePassword"
             android:textCursorDrawable="@drawable/cursor"
-
-
-            android:hint ="Your Link"
-
+            android:hint="@string/home_your_link"
             />
     </LinearLayout>
 

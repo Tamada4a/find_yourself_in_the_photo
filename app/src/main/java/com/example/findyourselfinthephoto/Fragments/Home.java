@@ -90,9 +90,10 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
 
     private void OpenGallery() {
         Intent galleryIntent = new Intent();
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
         galleryIntent.setType("image/*");
-        startActivityIntent.launch(galleryIntent);
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityIntent.launch(Intent.createChooser(galleryIntent,"Select Picture"));
     }
 
     ActivityResultLauncher<Intent> startActivityIntent = registerForActivityResult(
@@ -103,9 +104,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                     if (result.getResultCode() == RESULT_OK) {
                         Intent data = result.getData();
 
-                        Uri ImageUri = data.getData();
-                        upload_button.setImageURI(ImageUri);
-                        handlePathOz.getRealPath(ImageUri);
+                        if(data.getClipData() != null){
+                            //Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                        }
+                        else if (data.getData() != null) {
+                            Uri ImageUri = data.getData();
+                            upload_button.setImageURI(ImageUri);
+                            handlePathOz.getRealPath(ImageUri);
+                        }
                     }
                 }
             });
