@@ -2,16 +2,18 @@ package com.example.findyourselfinthephoto.Fragments;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.content.ClipData;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -26,6 +28,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.example.findyourselfinthephoto.GetRecognizedFaceUrl;
 import com.example.findyourselfinthephoto.MyJson;
 import com.example.findyourselfinthephoto.R;
+import com.sealstudios.multiimageview.MultiImageView;
 
 import org.json.simple.parser.ParseException;
 
@@ -45,7 +48,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
 
     private FragmentActivity activity;
 
-    private ImageView upload_button;
+    private MultiImageView upload_button;
     private ImageButton start_button;
     private EditText UrlField;
 
@@ -104,12 +107,26 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                     if (result.getResultCode() == RESULT_OK) {
                         Intent data = result.getData();
 
-                        if(data.getClipData() != null){
-                            //Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                        if(data.getClipData() != null) {
+                            ClipData clipData = data.getClipData();
+                            for (int i = 0; i < clipData.getItemCount(); ++i) {
+                                try {
+                                    Uri ImageUri = clipData.getItemAt(i).getUri();
+                                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ImageUri);
+                                    upload_button.addImage(bitmap);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                         else if (data.getData() != null) {
                             Uri ImageUri = data.getData();
-                            upload_button.setImageURI(ImageUri);
+                            try {
+                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ImageUri);
+                                upload_button.addImage(bitmap);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                             handlePathOz.getRealPath(ImageUri);
                         }
                     }
@@ -183,5 +200,4 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
             }
         }
     }
-
 }
