@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FindYourselfInThePhoto">
         <activity
-            android:name=".SplashActivity"
+            android:name=".Activities.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.SplashScreen">
             <intent-filter>
@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Main"
+            android:name=".Activities.Main"
             android:exported="true"
         />
     </application>

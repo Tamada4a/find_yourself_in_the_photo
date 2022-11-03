@@ -1,4 +1,4 @@
-package com.example.findyourselfinthephoto;
+package com.example.findyourselfinthephoto.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
