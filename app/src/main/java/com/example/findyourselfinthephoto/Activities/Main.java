@@ -1,10 +1,8 @@
-package com.example.findyourselfinthephoto;
+package com.example.findyourselfinthephoto.Activities;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,7 +12,9 @@ import com.example.findyourselfinthephoto.Fragments.FAQ;
 import com.example.findyourselfinthephoto.Fragments.History;
 import com.example.findyourselfinthephoto.Fragments.Home;
 
+import com.example.findyourselfinthephoto.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 public class Main extends AppCompatActivity {
     @Override
@@ -24,16 +24,15 @@ public class Main extends AppCompatActivity {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.findViewById(R.id.nav_home).performClick();
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(navigationItemSelectedListener);
+        bottomNavigationView.setOnItemSelectedListener(navigationItemSelectedListener);
         bottomNavigationView.setItemIconTintList(null);
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new Home()).commit();
     }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener =
-            new BottomNavigationView.OnNavigationItemSelectedListener() {
-                @SuppressLint("NonConstantResourceId")
+    private NavigationBarView.OnItemSelectedListener navigationItemSelectedListener =
+            new NavigationBarView.OnItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                     Fragment selectedFragment = null;
@@ -48,7 +47,6 @@ public class Main extends AppCompatActivity {
                         case R.id.nav_history:
                             selectedFragment = new History();
                             break;
-
                     }
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                             selectedFragment).commit();
