@@ -27,6 +27,23 @@ public class MyJson {
         return null;
     }
 
+    public static int getTotal(String json_string, String storageName) throws ParseException{
+        if(Objects.equals(storageName, "YandexDisk")){
+            keys = new String[]{"_embedded", "total"};
+            return getYandexTotalSize(json_string);
+        }
+        return -1;
+    }
+
+    private static int getYandexTotalSize(String json_string) throws ParseException{
+        Object obj = new JSONParser().parse(json_string);
+        JSONObject jo = (JSONObject) obj;
+
+        jo = (JSONObject) jo.get(keys[0]);
+        int size = ((Long) jo.get(keys[1])).intValue();
+        return size;
+    }
+
     private static ArrayList<ArrayList<String>> getYandexUrlArray(String json_string, String[] keys) throws ParseException {
 
         Object obj = new JSONParser().parse(json_string);
