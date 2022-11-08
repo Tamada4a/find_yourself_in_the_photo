@@ -163,8 +163,12 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     private void HandleGetTotal(String response) throws ParseException{
         totalSize = MyJson.getTotal(response, "YandexDisk");
 
-        MyRequests request = new MyRequests(gettedURL + "&limit=" + totalSize, activity, "getLinks");
-        request.execute();
+        if(totalSize != 0) {
+            MyRequests request = new MyRequests(gettedURL + "&limit=" + totalSize, activity, "getLinks");
+            request.execute();
+        }
+        else
+            Toast.makeText(activity, "А папка пустая!", Toast.LENGTH_SHORT).show();
     }
 
     private void HomeHandleResponse(String response) throws ParseException {
