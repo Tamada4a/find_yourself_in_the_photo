@@ -35,6 +35,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import br.com.onimur.handlepathoz.HandlePathOz;
 import br.com.onimur.handlepathoz.HandlePathOzListener;
@@ -57,7 +58,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     private HandlePathOz handlePathOz;
 
     private String gettedURL;
-    private String response = "";
+    private int totalSize;
 
     @Nullable
     @Override
@@ -102,7 +103,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
             Toast.makeText(activity, "Нужно ввести ссылку на папку!", Toast.LENGTH_SHORT).show();
         }
         else{
-            MyRequests request = new MyRequests(gettedURL, activity);
+            MyRequests request = new MyRequests(gettedURL, activity, "getTotal");
             request.execute();
         }
     }
@@ -152,12 +153,21 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
 
     @Override
     public void onRequestHandlePathOz(@NonNull PathOz pathOz, @Nullable Throwable throwable) {
-        realPathList.add(pathOz.getPath());
+        String path = pathOz.getPath();
+        if(!path.isEmpty()){
+            realPathList.add(pathOz.getPath());
+        }
         System.out.println("Real Path is " + pathOz.getPath());
     }
 
+    private void HandleGetTotal(String response) throws ParseException{
+        totalSize = MyJson.getTotal(response, "YandexDisk");
+
+        MyRequests request = new MyRequests(gettedURL + "&limit=" + totalSize, activity, "getLinks");
+        request.execute();
+    }
+
     private void HomeHandleResponse(String response) throws ParseException {
-        this.response = response;
         System.out.println("RESPONSE IS " + response);
 
         ArrayList<ArrayList<String>> result = MyJson.getUrlArray(response, "YandexDisk");
@@ -176,13 +186,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         private final String api_url = "https://cloud-api.yandex.net/v1/disk/public/resources?public_key=";
 
         private String response_string;
-
+        private String callType;
         private FragmentActivity fragmentActivity;
 
 
-        public MyRequests(String url_for_request, FragmentActivity activity) {
+        public MyRequests(String url_for_request, FragmentActivity activity, String callType) {
             this.url = url_for_request;
             this.fragmentActivity = activity;
+            this.callType = callType;
         }
 
         @Override
@@ -195,7 +206,6 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
             try {
                 Response response = client.newCall(request).execute();
                 response_string = response.body().string();
-
                 if (response_string.contains("обновите браузер") || response_string.contains("Ресурс не найден") || response_string.isEmpty())
                     return -1;
             } catch (IOException e) {
@@ -211,7 +221,10 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                 Toast.makeText(fragmentActivity, "Ошибка доступа по ссылке. Попробуйте ещё раз", Toast.LENGTH_SHORT).show();
             else {
                 try {
-                    HomeHandleResponse(response_string);
+                    if(Objects.equals(callType, "getTotal"))
+                        HandleGetTotal(response_string);
+                    else
+                        HomeHandleResponse(response_string);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
