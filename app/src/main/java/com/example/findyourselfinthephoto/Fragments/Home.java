@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +53,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     private ImageButton start_button;
     private EditText UrlField;
 
-    private String realPath = "";
+    private ArrayList<String> realPathList = new ArrayList<String>();
     private HandlePathOz handlePathOz;
 
     private String gettedURL;
@@ -81,14 +82,29 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         start_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                gettedURL = UrlField.getText().toString();
-
-                MyRequests request = new MyRequests(gettedURL, activity);
-                request.execute();
+                ValidateData();
             }
         });
 
         return view;
+    }
+
+    private void ValidateData(){
+        gettedURL = UrlField.getText().toString();
+
+        if(realPathList.isEmpty()){
+            Toast.makeText(activity,"Добавьте изображение!", Toast.LENGTH_SHORT).show();
+        }
+        if(TextUtils.isEmpty(gettedURL)){
+            Toast.makeText(activity, "Добавьте ссылку!", Toast.LENGTH_SHORT).show();
+        }
+        if(!gettedURL.contains("https://disk.yandex.ru/d/")){
+            Toast.makeText(activity, "Нужно ввести ссылку на папку!", Toast.LENGTH_SHORT).show();
+        }
+        else{
+            MyRequests request = new MyRequests(gettedURL, activity);
+            request.execute();
+        }
     }
 
     private void OpenGallery() {
@@ -110,13 +126,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                         if(data.getClipData() != null) {
                             ClipData clipData = data.getClipData();
                             for (int i = 0; i < clipData.getItemCount(); ++i) {
+                                Uri ImageUri = clipData.getItemAt(i).getUri();
                                 try {
-                                    Uri ImageUri = clipData.getItemAt(i).getUri();
                                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ImageUri);
                                     upload_button.addImage(bitmap);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
+                                handlePathOz.getRealPath(ImageUri);
                             }
                         }
                         else if (data.getData() != null) {
@@ -135,7 +152,8 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
 
     @Override
     public void onRequestHandlePathOz(@NonNull PathOz pathOz, @Nullable Throwable throwable) {
-        realPath = pathOz.getPath();
+        realPathList.add(pathOz.getPath());
+        System.out.println("Real Path is " + pathOz.getPath());
     }
 
     private void HomeHandleResponse(String response) throws ParseException {
@@ -148,7 +166,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         for (int i = 0; i < size; ++i)
             System.out.println("Ссылка №" + i + "\n" + result.get(0).get(i) + "\n" + result.get(1).get(i));
 
-        GetRecognizedFaceUrl.compare_image(realPath, result, activity);
+        GetRecognizedFaceUrl.compare_image(realPathList, result, activity);
     }
 
     private class MyRequests extends AsyncTask {
