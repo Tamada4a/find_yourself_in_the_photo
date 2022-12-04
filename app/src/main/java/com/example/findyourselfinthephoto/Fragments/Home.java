@@ -180,7 +180,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         for (int i = 0; i < size; ++i)
             System.out.println("Ссылка №" + i + "\n" + result.get(0).get(i) + "\n" + result.get(1).get(i));
 
-        GetRecognizedFaceUrl.compare_image(realPathList, result, activity);
+        GetRecognizedFaceUrl.compare_image(realPathList, result, activity, gettedURL);
     }
 
     private class MyRequests extends AsyncTask {

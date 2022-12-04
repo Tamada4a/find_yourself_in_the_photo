@@ -6,4 +6,12 @@
     android:background="@drawable/story_back"
     tools:context=".Fragments.History">
 
+    <ExpandableListView
+        android:id="@+id/lvExp"
+        android:layout_width="match_parent"
+        android:layout_height="619dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="112dp" />
+
+
 </RelativeLayout>

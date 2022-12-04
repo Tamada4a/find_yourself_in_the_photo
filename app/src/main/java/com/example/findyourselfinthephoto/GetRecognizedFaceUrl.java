@@ -1,7 +1,10 @@
 package com.example.findyourselfinthephoto;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -22,6 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import generator.RandomUserAgentGenerator;
 import okhttp3.OkHttpClient;
@@ -44,16 +50,23 @@ public class GetRecognizedFaceUrl {
 
     public static final double ACCEPT_LEVEL = 4000.0D;
 
+    private static SharedPreferences preferences;
+    private static SharedPreferences.Editor save;
+
+    private static String gettedURL;
+    public static Set<String> setValues;// сет, состоящий из найденных фоток, где ключ это значение setKey
     //private static FaceRecognizer faceRecognizer;
 
     private static CascadeClassifier cascadeClassifier;
     private static ArrayList<ArrayList> recognized_array;
 
-    public static void compare_image(ArrayList<String> pathList, ArrayList<ArrayList<String>> UrlArray, Activity activity) {
+    public static void compare_image(ArrayList<String> pathList, ArrayList<ArrayList<String>> UrlArray, Activity activity, String getTedURL) {
         initializeCascadeClassifier(activity);
         //loadDL4J();
         //train(pathList);
-
+        preferences = activity.getSharedPreferences("Link", MODE_PRIVATE);
+        save = preferences.edit();
+        gettedURL = getTedURL;
         MyRequests requests = new MyRequests(UrlArray, pathList);
         requests.execute();
     }
@@ -63,7 +76,7 @@ public class GetRecognizedFaceUrl {
 
         try {
             InputStream is = activity.getResources().openRawResource(R.raw.haarcascade_frontalface_alt);
-            File cascadeDir = activity.getDir("cascade", Context.MODE_PRIVATE);
+            File cascadeDir = activity.getDir("cascade", MODE_PRIVATE);
             File mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_alt.xml");
             FileOutputStream os = new FileOutputStream(mCascadeFile);
 
@@ -168,6 +181,8 @@ public class GetRecognizedFaceUrl {
             recognized_array.add(new ArrayList<>());
             recognized_array.add(new ArrayList<>());
 
+            setValues = new HashSet<String>();
+
             UrlArray = urlArr;
             this.pathList = pathList;
         }
@@ -233,6 +248,14 @@ public class GetRecognizedFaceUrl {
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
+
+            ArrayList<String> temp = recognized_array.get(0);
+            for(int i = 0; i < recognized_array.get(0).size(); ++i){
+                setValues.add(temp.get(i));
+            }
+            save.putStringSet(gettedURL + '\n' + new Date().toString(), setValues);
+            save.apply();
+
             System.out.println("\nYou 've been recognized on " + recognized_array.get(0).size() + " photos");
         }
 
