@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="20dp"
+    android:layout_marginStart="15dp"
+    android:layout_marginEnd="15dp"
+    app:cardElevation="15dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+            android:id="@+id/lblListHeaderF"
+            android:layout_width="fill_parent"
+            android:layout_height="75dp"
+            android:textSize="17dp"
+            android:textColor="@color/black"
+            android:drawableRight="@drawable/ic_baseline_looks_one_24" />
+
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>
