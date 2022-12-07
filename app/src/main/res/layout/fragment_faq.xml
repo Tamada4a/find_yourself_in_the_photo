@@ -1,9 +1,262 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/faq_back"
     tools:context=".Fragments.FAQ">
 
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+
+
+            <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="150dp"
+                        android:layout_marginStart="25dp"
+                        android:orientation="vertical"
+                        android:scrollbars="vertical">
+
+                        <TextView
+                            android:id="@+id/textViewFaq1"
+                            android:layout_width="351dp"
+                            android:layout_height="450dp"
+                            android:gravity="start|start"
+                            android:text="              Hello, My Friend!\n "
+                            android:textSize="25sp"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style"/>
+
+
+                    </LinearLayout>
+
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="0dp"
+                android:accessibilityLiveRegion="polite"
+                android:clipToPadding="false"
+                android:isScrollContainer="false"
+                android:keepScreenOn="false"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="-10dp"
+                    android:layout_marginTop="150dp"
+                    android:layout_marginEnd="30dp"
+                    android:orientation="vertical"
+                    android:scrollbars="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="351dp"
+                        android:layout_height="600dp"
+                        android:layout_centerHorizontal="true"
+                        android:background="@drawable/home_back"
+                        android:foregroundTint="#000000"
+                        android:foregroundTintMode="add"
+                        android:scrollbars="vertical">
+
+                        <ImageButton
+                            android:layout_width="336dp"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+
+                            android:layout_marginBottom="30dp"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/start_button" />
+
+                        <com.sealstudios.multiimageview.MultiImageView
+                            android:layout_width="310dp"
+                            android:layout_height="310dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/uploadphoto_round"
+                            app:shape="circle" />
+
+
+                        <EditText
+                            android:layout_width="300dp"
+                            android:layout_height="63dp"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:layout_marginTop="34dp"
+                            android:layout_marginEnd="26dp"
+                            android:background="@drawable/input_link"
+                            android:enabled="false"
+                            android:hint="@string/home_your_link"
+                            android:inputType="none"
+                            android:paddingLeft="15dp"
+                            android:paddingRight="15dp"
+                            android:textCursorDrawable="@drawable/cursor"
+                            android:textSize="30sp" />
+
+                        <ImageView
+                            android:id="@+id/imageView5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_alignParentTop="true"
+                            android:layout_marginStart="240dp"
+                            android:layout_marginTop="29dp"
+                            app:srcCompat="@drawable/ic_baseline_looks_one_24" />
+
+                        <ImageView
+                            android:id="@+id/imageView6"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginTop="219dp"
+                            android:layout_marginEnd="123dp"
+                            app:srcCompat="@drawable/ic_baseline_looks_two_24" />
+
+                        <ImageView
+                            android:id="@+id/imageView7"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginEnd="250dp"
+                            android:layout_marginBottom="104dp"
+                            app:srcCompat="@drawable/ic_baseline_looks_3_24" />
+
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:orientation="vertical"
+                        android:scrollbars="vertical">
+
+                        <TextView
+                            android:id="@+id/textView1"
+                            android:layout_width="351dp"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/ic_baseline_looks_one_24"
+                            android:gravity="center|start"
+                            android:text="Вставьте ссылку на yandex диск, на котором будет производиться поиск нужных Вам фотографий"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style2"/>
+
+                        <TextView
+                            android:id="@+id/textView2"
+                            android:layout_width="351dp"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/ic_baseline_looks_two_24"
+                            android:gravity="center|start"
+                            android:text="Загрузите фотографии, с помощью которых мы будем искать схожие с ними"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style2"/>
+
+                        <TextView
+                            android:id="@+id/textView3"
+                            android:layout_width="351dp"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/ic_baseline_looks_3_24"
+                            android:gravity="center|start"
+                            android:text="Нажмите на &quot;FIND PHOTO&quot;"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style2"/>
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:layout_width="350dp"
+                        android:layout_height="155dp" />
+                </LinearLayout>
+            </ScrollView>
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="150dp"
+                    android:layout_marginEnd="30dp"
+                    android:orientation="vertical"
+                    android:scrollbars="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="351dp"
+                        android:layout_height="600dp"
+                        android:layout_centerHorizontal="true"
+                        android:background="@drawable/story_back"
+                        android:scrollbars="vertical">
+
+                        <ExpandableListView
+                            android:id="@+id/lExp"
+                            android:layout_width="match_parent"
+                            android:layout_height="600dp"
+
+                            android:layout_marginTop="112dp"
+                            />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:orientation="vertical"
+                        android:scrollbars="vertical">
+
+                        <TextView
+                            android:id="@+id/textViewHistory1"
+                            android:layout_width="351dp"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/ic_baseline_looks_one_24"
+                            android:gravity="center|start"
+                            android:text="Ссылка на Яндекс диск со всеми фотками"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style2"/>
+
+                        <TextView
+                            android:id="@+id/textViewHistory2"
+                            android:layout_width="351dp"
+                            android:layout_height="wrap_content"
+                            android:drawableLeft="@drawable/ic_baseline_looks_two_24"
+                            android:gravity="center|start"
+                            android:text="Ссылка на фотку, на которой есть прекрасный ты"
+                            android:textColor="@color/black"
+                            android:background="@drawable/textview_style2"/>
+
+
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:layout_width="350dp"
+                        android:layout_height="155dp" />
+                </LinearLayout>
+
+            </ScrollView>
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
 </RelativeLayout>
+
