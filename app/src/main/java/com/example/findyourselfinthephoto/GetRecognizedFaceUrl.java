@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
@@ -75,7 +76,7 @@ public class GetRecognizedFaceUrl {
         editor = sharedPref.edit();
 
         gettedURL = getTedURL;
-        MyRequests requests = new MyRequests(UrlArray, pathList);
+        MyRequests requests = new MyRequests(UrlArray, pathList, activity);
         requests.execute();
     }
 
@@ -183,8 +184,9 @@ public class GetRecognizedFaceUrl {
         private ArrayList<ArrayList<String>> UrlArray;
         private ArrayList<String> pathList;
         private boolean isRecognized = false;
+        private Activity _activity;
 
-        public MyRequests(ArrayList<ArrayList<String>> urlArr, ArrayList<String> pathList) {
+        public MyRequests(ArrayList<ArrayList<String>> urlArr, ArrayList<String> pathList, Activity activity) {
             recognized_array = new ArrayList<>();
             recognized_array.add(new ArrayList<String>()); //preview url
             recognized_array.add(new ArrayList<String>()); //download url
@@ -195,6 +197,7 @@ public class GetRecognizedFaceUrl {
 
             UrlArray = urlArr;
             this.pathList = pathList;
+            _activity = activity;
         }
 
         @NonNull
@@ -321,6 +324,7 @@ public class GetRecognizedFaceUrl {
             editor.putString("keys", jsonKeysArray);
             editor.apply();
 
+            Toast.makeText(_activity, "Вы были распознаны на " + recognized_array.get(0).size() + " фото!", Toast.LENGTH_SHORT).show();
             System.out.println("\nYou 've been recognized on " + recognized_array.get(0).size() + " photos");
         }
 

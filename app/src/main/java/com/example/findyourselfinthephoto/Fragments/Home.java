@@ -86,7 +86,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         upload_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OpenGallery();
+                loadPhoto();
             }
         });
 
@@ -123,11 +123,12 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
             return;
         }
 
+        Toast.makeText(activity, "Начинаем просматривать фотографии!", Toast.LENGTH_SHORT).show();
         MyRequests request = new MyRequests(gettedURL, activity, "getTotal");
         request.execute();
     }
 
-    private void OpenGallery() {
+    private void loadPhoto() {
         Intent galleryIntent = new Intent();
         galleryIntent.setType("image/*");
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
