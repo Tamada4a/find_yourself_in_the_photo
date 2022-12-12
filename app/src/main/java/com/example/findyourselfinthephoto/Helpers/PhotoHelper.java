@@ -2,6 +2,9 @@ package com.example.findyourselfinthephoto.Helpers;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import static org.opencv.imgproc.Imgproc.INTER_AREA;
+import static org.opencv.imgproc.Imgproc.resize;
+
 import android.app.Activity;
 import android.util.Log;
 
@@ -11,6 +14,7 @@ import com.example.findyourselfinthephoto.R;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.objdetect.CascadeClassifier;
 
@@ -37,8 +41,13 @@ public class PhotoHelper {
     public boolean isContainsFace(String path){
         Mat matImage = Imgcodecs.imread(path);
 
+        Mat resizeimage = new Mat();
+        Size scaleSize = new Size(450,450);
+
+        resize(matImage, resizeimage, scaleSize , 0, 0, INTER_AREA);
+
         MatOfRect faceDetections = new MatOfRect();
-        cascadeClassifier.detectMultiScale(matImage, faceDetections);
+        cascadeClassifier.detectMultiScale(resizeimage, faceDetections);
 
         return !faceDetections.empty();
     }
