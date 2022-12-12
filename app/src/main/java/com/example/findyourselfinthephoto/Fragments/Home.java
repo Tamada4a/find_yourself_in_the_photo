@@ -24,6 +24,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -36,6 +37,7 @@ import com.sealstudios.multiimageview.MultiImageView;
 
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -66,6 +68,8 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
     private boolean isOffline = false;
 
     private PhotoHelper photoHelper;
+
+    private Uri photoURI;
 
     @Nullable
     @Override
@@ -128,7 +132,26 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         galleryIntent.setType("image/*");
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityIntent.launch(Intent.createChooser(galleryIntent,"Select Picture"));
+
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try
+        {
+            File outputDir = getContext().getCacheDir();
+
+            File photo = new File(outputDir, "photo.jpg");
+
+            photo.delete();
+            photoURI = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", photo);
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+            Intent chooser = Intent.createChooser(galleryIntent,"Select Picture");
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { intent });
+            startActivityIntent.launch(chooser);
+        }
+        catch(Exception e)
+        {
+            Toast.makeText(activity, "Пожалуйста, проверьте Sd  - карту", Toast.LENGTH_SHORT);
+        }
     }
 
     ActivityResultLauncher<Intent> startActivityIntent = registerForActivityResult(
@@ -151,6 +174,10 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
                             Uri ImageUri = data.getData();
                             Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
                             handlePathOz.getRealPath(ImageUri);
+                        }
+                        else if(photoURI != null){
+                            Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
+                            handlePathOz.getRealPath(photoURI);
                         }
                     }
                 }
