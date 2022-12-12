@@ -9,6 +9,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 
+import androidx.annotation.NonNull;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfFloat;
@@ -23,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -50,8 +56,9 @@ public class GetRecognizedFaceUrl {
 
     public static final double ACCEPT_LEVEL = 4000.0D;
 
-    private static SharedPreferences preferences;
-    private static SharedPreferences.Editor save;
+    private static SharedPreferences sharedPref;
+    private static SharedPreferences.Editor editor;
+
 
     private static String gettedURL;
     public static Set<String> setValues;// сет, состоящий из найденных фоток, где ключ это значение setKey
@@ -64,14 +71,15 @@ public class GetRecognizedFaceUrl {
         initializeCascadeClassifier(activity);
         //loadDL4J();
         //train(pathList);
-        preferences = activity.getSharedPreferences("Link", MODE_PRIVATE);
-        save = preferences.edit();
+        sharedPref = activity.getPreferences(MODE_PRIVATE);
+        editor = sharedPref.edit();
+
         gettedURL = getTedURL;
         MyRequests requests = new MyRequests(UrlArray, pathList);
         requests.execute();
     }
 
-    private static void initializeCascadeClassifier(Activity activity) {
+    private static void initializeCascadeClassifier(@NonNull Activity activity) {
         System.loadLibrary("opencv_java4");
 
         try {
@@ -178,8 +186,10 @@ public class GetRecognizedFaceUrl {
 
         public MyRequests(ArrayList<ArrayList<String>> urlArr, ArrayList<String> pathList) {
             recognized_array = new ArrayList<>();
-            recognized_array.add(new ArrayList<>());
-            recognized_array.add(new ArrayList<>());
+            recognized_array.add(new ArrayList<String>()); //preview url
+            recognized_array.add(new ArrayList<String>()); //download url
+            recognized_array.add(new ArrayList<byte[]>()); //bytes preview
+            recognized_array.add(new ArrayList<String>()); //file name
 
             setValues = new HashSet<String>();
 
@@ -187,12 +197,14 @@ public class GetRecognizedFaceUrl {
             this.pathList = pathList;
         }
 
+        @NonNull
         @Override
         protected Object doInBackground(Object[] objects) {
 
             for (int i = 0; i < UrlArray.get(0).size(); ++i) {
                 String curUrl = UrlArray.get(0).get(i);
                 String curDonwloadUrl = UrlArray.get(1).get(i);
+                String curName = UrlArray.get(2).get(i);
 
                 Request request = new Request.Builder()
                         .url(curUrl)
@@ -231,6 +243,8 @@ public class GetRecognizedFaceUrl {
                                 if (res > 0.7) {
                                     recognized_array.get(0).add(curUrl);
                                     recognized_array.get(1).add(curDonwloadUrl);
+                                    recognized_array.get(2).add(bytes);
+                                    recognized_array.get(3).add(curName);
                                     System.out.println("You 've been recognized with " + res + " here\n" + curUrl);
                                     isRecognized = true;
                                     break;
@@ -249,16 +263,68 @@ public class GetRecognizedFaceUrl {
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
 
-            ArrayList<String> temp = recognized_array.get(0);
-            for(int i = 0; i < recognized_array.get(0).size(); ++i){
-                setValues.add(temp.get(i));
+            Type stringType = new TypeToken<ArrayList<ArrayList<String>>>() {}.getType();
+
+            //ссылки на превью
+            ArrayList<ArrayList<String>> previewUrls = new ArrayList<ArrayList<String>>();
+            if(sharedPref.contains("previewLinks")){
+                String jsonPreviewLinks = sharedPref.getString("previewLinks", "");
+                previewUrls = new Gson().fromJson(jsonPreviewLinks, stringType);
             }
-            save.putStringSet(gettedURL + '\n' + new Date().toString(), setValues);
-            save.apply();
+            previewUrls.add(recognized_array.get(0));
+
+            //ссылки на скачивание
+            ArrayList<ArrayList<String>> download = new ArrayList<ArrayList<String>>();
+            if(sharedPref.contains("download")){
+                String jsonDownload = sharedPref.getString("download", "");
+                download = new Gson().fromJson(jsonDownload, stringType);
+            }
+            download.add(recognized_array.get(1));
+
+            //картинки для превью
+            ArrayList<ArrayList<byte[]>> previewBytes = new ArrayList<ArrayList<byte[]>>();
+            if(sharedPref.contains("previewBytes")){
+                Type previewItemsType = new TypeToken<ArrayList<ArrayList<byte[]>>>() {}.getType();
+                String jsonPreview = sharedPref.getString("previewBytes", "");
+                previewBytes = new Gson().fromJson(jsonPreview, previewItemsType);
+            }
+            previewBytes.add(recognized_array.get(2));
+
+            //имена
+            ArrayList<ArrayList<String>> names = new ArrayList<ArrayList<String>>();
+            if(sharedPref.contains("names")){
+                String jsonNames = sharedPref.getString("names", "");
+                names = new Gson().fromJson(jsonNames, stringType);
+            }
+            names.add(recognized_array.get(3));
+
+            //ключи (текущая ссылка + дата)
+            ArrayList<String> keys = new ArrayList<String>();
+            if(sharedPref.contains("keys")){
+                Type keysItemsType = new TypeToken<ArrayList<String>>() {}.getType();
+                String jsonKeys = sharedPref.getString("keys", "");
+                keys = new Gson().fromJson(jsonKeys, keysItemsType);
+            }
+            keys.add(gettedURL + '\n' + new Date().toString());
+
+
+            String jsonPreviewUrlArray = new Gson().toJson(previewUrls);
+            String jsonPreviewArray = new Gson().toJson(previewBytes);
+            String jsonDownloadArray = new Gson().toJson(download);
+            String jsonNamesArray = new Gson().toJson(names);
+            String jsonKeysArray = new Gson().toJson(keys);
+
+            editor.putString("previewLinks", jsonPreviewUrlArray);
+            editor.putString("download", jsonDownloadArray);
+            editor.putString("previewBytes", jsonPreviewArray);
+            editor.putString("names", jsonNamesArray);
+            editor.putString("keys", jsonKeysArray);
+            editor.apply();
 
             System.out.println("\nYou 've been recognized on " + recognized_array.get(0).size() + " photos");
         }
 
+        @NonNull
         private ArrayList<Mat> extractFaces(Mat image) {
             ArrayList<Mat> detectedFace = new ArrayList<Mat>();
 
