@@ -49,6 +49,8 @@ dependencies {
 
     implementation 'com.github.onimur:handle-path-oz:1.0.7' //handle real path
 
+    implementation 'com.google.code.gson:gson:2.8.9' //json for sharedPreference
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(path: ':OpenCVLibrary')
 }
