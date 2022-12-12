@@ -5,6 +5,7 @@ import static android.app.Activity.RESULT_OK;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -26,8 +27,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import com.example.findyourselfinthephoto.CustomListeners.NetworkStateReceiver;
 import com.example.findyourselfinthephoto.GetRecognizedFaceUrl;
-import com.example.findyourselfinthephoto.MyJson;
+import com.example.findyourselfinthephoto.Helpers.MyJson;
+import com.example.findyourselfinthephoto.Helpers.PhotoHelper;
 import com.example.findyourselfinthephoto.R;
 import com.sealstudios.multiimageview.MultiImageView;
 
@@ -46,7 +49,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 
-public class Home extends Fragment implements HandlePathOzListener.SingleUri {
+public class Home extends Fragment implements HandlePathOzListener.SingleUri, NetworkStateReceiver.NetworkStateReceiverListener {
 
     private FragmentActivity activity;
 
@@ -60,9 +63,13 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     private String gettedURL;
     private int totalSize;
 
+    private boolean isOffline = false;
+
+    private PhotoHelper photoHelper;
+
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         handlePathOz = new HandlePathOz(getContext(), this);
@@ -87,25 +94,33 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
             }
         });
 
+        photoHelper = new PhotoHelper(activity);
+
         return view;
     }
 
     private void ValidateData(){
         gettedURL = UrlField.getText().toString();
 
+        if(isOffline){
+            Toast.makeText(activity,"Отсутствует интернет-соединение!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if(realPathList.isEmpty()){
             Toast.makeText(activity,"Добавьте изображение!", Toast.LENGTH_SHORT).show();
+            return;
         }
         if(TextUtils.isEmpty(gettedURL)){
             Toast.makeText(activity, "Добавьте ссылку!", Toast.LENGTH_SHORT).show();
+            return;
         }
         if(!gettedURL.contains("https://disk.yandex.ru/d/")){
             Toast.makeText(activity, "Нужно ввести ссылку на папку!", Toast.LENGTH_SHORT).show();
+            return;
         }
-        else{
-            MyRequests request = new MyRequests(gettedURL, activity, "getTotal");
-            request.execute();
-        }
+
+        MyRequests request = new MyRequests(gettedURL, activity, "getTotal");
+        request.execute();
     }
 
     private void OpenGallery() {
@@ -126,25 +141,15 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
 
                         if(data.getClipData() != null) {
                             ClipData clipData = data.getClipData();
+                            Toast.makeText(activity, "Проверяем фотографии на наличие лиц", Toast.LENGTH_SHORT).show();
                             for (int i = 0; i < clipData.getItemCount(); ++i) {
                                 Uri ImageUri = clipData.getItemAt(i).getUri();
-                                try {
-                                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ImageUri);
-                                    upload_button.addImage(bitmap);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
                                 handlePathOz.getRealPath(ImageUri);
                             }
                         }
                         else if (data.getData() != null) {
                             Uri ImageUri = data.getData();
-                            try {
-                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ImageUri);
-                                upload_button.addImage(bitmap);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
                             handlePathOz.getRealPath(ImageUri);
                         }
                     }
@@ -155,7 +160,15 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     public void onRequestHandlePathOz(@NonNull PathOz pathOz, @Nullable Throwable throwable) {
         String path = pathOz.getPath();
         if(!path.isEmpty()){
-            realPathList.add(pathOz.getPath());
+            if(photoHelper.isContainsFace(path)) {
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                Bitmap bitmap = BitmapFactory.decodeFile(path, bmOptions);
+
+                upload_button.addImage(bitmap);
+                realPathList.add(pathOz.getPath());
+            }
+            else
+                Toast.makeText(activity, "Не получается распознать лицо на фото", Toast.LENGTH_SHORT).show();
         }
         System.out.println("Real Path is " + pathOz.getPath());
     }
@@ -163,11 +176,10 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
     private void HandleGetTotal(String response) throws ParseException{
         totalSize = MyJson.getTotal(response, "YandexDisk");
 
-        if(totalSize != 0) {
+        if (totalSize != 0) {
             MyRequests request = new MyRequests(gettedURL + "&limit=" + totalSize, activity, "getLinks");
             request.execute();
-        }
-        else
+        } else
             Toast.makeText(activity, "А папка пустая!", Toast.LENGTH_SHORT).show();
     }
 
@@ -180,8 +192,22 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
         for (int i = 0; i < size; ++i)
             System.out.println("Ссылка №" + i + "\n" + result.get(0).get(i) + "\n" + result.get(1).get(i));
 
-        GetRecognizedFaceUrl.compare_image(realPathList, result, activity, gettedURL);
+        if(result.get(0).size() != 0)
+            GetRecognizedFaceUrl.compare_image(realPathList, result, activity, gettedURL);
+        else
+            Toast.makeText(activity, "В папке не удалось обнаружить фотографии", Toast.LENGTH_SHORT).show();
     }
+
+    @Override
+    public void networkAvailable() {
+        isOffline = false;
+    }
+
+    @Override
+    public void networkUnavailable() {
+        isOffline = true;
+    }
+
 
     private class MyRequests extends AsyncTask {
         private final OkHttpClient client = new OkHttpClient();
@@ -210,7 +236,8 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
             try {
                 Response response = client.newCall(request).execute();
                 response_string = response.body().string();
-                if (response_string.contains("обновите браузер") || response_string.contains("Ресурс не найден") || response_string.isEmpty())
+                if (response_string.contains("обновите браузер") || response_string.contains("Ресурс не найден") || response_string.isEmpty()
+                || response_string.contains("Не удалось найти запрошенный ресурс") || response_string.contains("Internal Server Error") || response_string.contains("InternalServerError"))
                     return -1;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -225,10 +252,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri {
                 Toast.makeText(fragmentActivity, "Ошибка доступа по ссылке. Попробуйте ещё раз", Toast.LENGTH_SHORT).show();
             else {
                 try {
-                    if(Objects.equals(callType, "getTotal"))
-                        HandleGetTotal(response_string);
-                    else
-                        HomeHandleResponse(response_string);
+                    if(response_string != null && response_string != "") {
+                        if (Objects.equals(callType, "getTotal"))
+                            HandleGetTotal(response_string);
+                        else
+                            HomeHandleResponse(response_string);
+                    }else{
+                        Toast.makeText(fragmentActivity, "Невозможно получить доступ к хранилищу", Toast.LENGTH_SHORT).show();
+                    }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
