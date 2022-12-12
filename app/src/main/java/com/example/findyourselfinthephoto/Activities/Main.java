@@ -1,6 +1,6 @@
 package com.example.findyourselfinthephoto.Activities;
 
-import android.annotation.SuppressLint;
+
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -16,6 +16,9 @@ import com.example.findyourselfinthephoto.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+/*
+* Данный класс отвечает за переход по фрагментам
+* */
 public class Main extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

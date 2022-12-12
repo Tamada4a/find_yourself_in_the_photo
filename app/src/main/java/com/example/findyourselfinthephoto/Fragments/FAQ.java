@@ -5,22 +5,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import android.os.Bundle;
 
-import android.view.View;
 import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.example.findyourselfinthephoto.ExpandableListAdapter;
-import com.example.findyourselfinthephoto.FAQExpandableListAdapter;
+import com.example.findyourselfinthephoto.Adapters.FAQExpandableListAdapter;
 import com.example.findyourselfinthephoto.R;
 
 
@@ -40,7 +36,7 @@ public class FAQ extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_faq, container, false);
 
         createGroupList();
