@@ -3,8 +3,11 @@ package com.example.findyourselfinthephoto.Fragments;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -21,8 +24,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.findyourselfinthephoto.Adapters.ExpandableListAdapter;
 import com.example.findyourselfinthephoto.CustomListeners.NetworkStateReceiver;
@@ -30,7 +33,10 @@ import com.example.findyourselfinthephoto.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -59,6 +65,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
     private ArrayList<String> keys = new ArrayList<String>();
 
     private boolean isOffilne = false;
+    private boolean isLongClicked = false;
 
     @Nullable
     @Override
@@ -81,18 +88,20 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         expListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
-                if(name != "No photos found :(") {
-                    if(!isOffilne) {
-                        Intent intent = new Intent();
+                if(!isLongClicked) {
+                    String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
+                    if (name != "No photos found :(") {
+                        if (!isOffilne) {
+                            Intent intent = new Intent();
 
-                        Uri uri = Uri.parse(previewUrls.get(groupPosition).get(childPosition));
+                            Uri uri = Uri.parse(previewUrls.get(groupPosition).get(childPosition));
 
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setDataAndType(uri, "image/*");
-                        view.getContext().startActivity(intent);
-                    }else{
-                        Toast.makeText(getActivity(), "Проблема с подключением к сети", Toast.LENGTH_SHORT).show();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            intent.setDataAndType(uri, "image/*");
+                            view.getContext().startActivity(intent);
+                        } else {
+                            Toast.makeText(getActivity(), "Проблема с подключением к сети", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
                 return false;
@@ -102,6 +111,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                isLongClicked = true;
                 long packedPosition = expListView.getExpandableListPosition(i);
 
                 int itemType = ExpandableListView.getPackedPositionType(packedPosition);
@@ -144,7 +154,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         labelInfo.setText("Удаление ссылки из списка");
 
         TextView dataInfo = (TextView)alertDialog.findViewById(R.id.info_dialog_Text);
-        String info = "Вы уверены, что хотите удалить выбранную(" + (groupPosition + 1) + ") запись?";
+        String info = "Вы уверены, что хотите удалить выбранную(№" + (groupPosition + 1) + ") запись?";
         dataInfo.setText(info);
 
         TextView positiveButton = (TextView)alertDialog.findViewById(R.id.info_dialog_positiveButton);
@@ -152,6 +162,13 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
 
         TextView negativeButton = (TextView)alertDialog.findViewById(R.id.info_dialog_NegativeButton);
         negativeButton.setText("Нет");
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                isLongClicked = false;
+            }
+        });
 
         builder.setView(alertDialog);
 
@@ -194,17 +211,20 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         View alertDialog = LayoutInflater.from(getContext()).inflate(R.layout.alert_dialog_layout, null);
 
         TextView labelInfo = (TextView)alertDialog.findViewById(R.id.info_dialog_Label);
-        labelInfo.setText("Скачивание фотографии");
-
-        TextView dataInfo = (TextView)alertDialog.findViewById(R.id.info_dialog_Text);
-        String info = "Скачать выбранную(" + names.get(groupPosition).get(childPosition) + ") фотографию?";
-        dataInfo.setText(info);
+        labelInfo.setText("Что вы хотите сделать с фотографией?");
 
         TextView positiveButton = (TextView)alertDialog.findViewById(R.id.info_dialog_positiveButton);
-        positiveButton.setText("Да");
+        positiveButton.setText("Скачать");
 
         TextView negativeButton = (TextView)alertDialog.findViewById(R.id.info_dialog_NegativeButton);
-        negativeButton.setText("Нет");
+        negativeButton.setText("Поделиться");
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                isLongClicked = false;
+            }
+        });
 
         builder.setView(alertDialog);
 
@@ -224,6 +244,38 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         negativeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    String name = names.get(groupPosition).get(childPosition);
+
+                    File outputDir = getContext().getCacheDir();
+
+                    File outputFile = new File(outputDir, name);
+
+                    byte[] dataForWriting = previewBytes.get(groupPosition).get(childPosition);
+                    FileUtils.writeByteArrayToFile(outputFile, dataForWriting);
+
+                    Uri photoURI = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", outputFile);
+
+                    Intent sharingIntent = new Intent("android.intent.action.SEND");
+                    sharingIntent.setType("image/*");
+                    sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    sharingIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    sharingIntent.putExtra("android.intent.extra.STREAM", photoURI);
+
+                    Intent chooser = Intent.createChooser(sharingIntent, "Share using");
+
+                    List<ResolveInfo> resInfoList = getContext().getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY);
+
+                    for (ResolveInfo resolveInfo : resInfoList) {
+                        String packageName = resolveInfo.activityInfo.packageName;
+                        getContext().grantUriPermission(packageName, photoURI, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+
+                    startActivity(chooser);
+                    //outputFile.delete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 dialog.cancel();
             }
         });
@@ -255,7 +307,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
                         Toast.makeText(getActivity(), "Фотография успешно скачана", Toast.LENGTH_SHORT).show();
                     }
                     else
-                        Toast.makeText(getActivity(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Что-то пошло не так. Возможно, что ссылка устарела. Необходимо ещё раз провести поиск", Toast.LENGTH_SHORT).show();
                 }
                 catch (IOException e){
 
