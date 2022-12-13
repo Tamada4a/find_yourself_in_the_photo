@@ -66,10 +66,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
     private int totalSize;
 
     private boolean isOffline = false;
+    private boolean isReadyToStart = true;
 
     private PhotoHelper photoHelper;
 
     private Uri photoURI;
+
+    private int checkSize;
+
 
     @Nullable
     @Override
@@ -103,6 +107,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         return view;
     }
 
+
     private void ValidateData(){
         gettedURL = UrlField.getText().toString();
 
@@ -122,11 +127,16 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
             Toast.makeText(activity, "Нужно ввести ссылку на папку!", Toast.LENGTH_SHORT).show();
             return;
         }
+        if(!isReadyToStart){
+            Toast.makeText(activity, "Подождите, я проверяю фотографии!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Toast.makeText(activity, "Начинаем просматривать фотографии!", Toast.LENGTH_SHORT).show();
         MyRequests request = new MyRequests(gettedURL, activity, "getTotal");
         request.execute();
     }
+
 
     private void loadPhoto() {
         Intent galleryIntent = new Intent();
@@ -141,7 +151,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
 
             File photo = new File(outputDir, "photo.jpg");
 
-            photo.delete();
+            //photo.delete();
             photoURI = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", photo);
 
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -155,6 +165,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         }
     }
 
+
     ActivityResultLauncher<Intent> startActivityIntent = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -166,6 +177,8 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
                         if(data.getClipData() != null) {
                             ClipData clipData = data.getClipData();
                             Toast.makeText(activity, "Проверяем фотографии на наличие лиц", Toast.LENGTH_SHORT).show();
+                            isReadyToStart = false;
+                            checkSize = clipData.getItemCount();
                             for (int i = 0; i < clipData.getItemCount(); ++i) {
                                 Uri ImageUri = clipData.getItemAt(i).getUri();
                                 handlePathOz.getRealPath(ImageUri);
@@ -184,22 +197,38 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
                 }
             });
 
+
     @Override
     public void onRequestHandlePathOz(@NonNull PathOz pathOz, @Nullable Throwable throwable) {
         String path = pathOz.getPath();
-        if(!path.isEmpty()){
-            if(photoHelper.isContainsFace(path)) {
-                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                Bitmap bitmap = BitmapFactory.decodeFile(path, bmOptions);
+        if (!path.isEmpty()) {
+            if (!realPathList.contains(path)) {
+                if (photoHelper.isContainsFace(path)) {
 
-                upload_button.addImage(bitmap);
-                realPathList.add(pathOz.getPath());
+                    BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                    Bitmap bitmap = BitmapFactory.decodeFile(path, bmOptions);
+
+                    upload_button.addImage(bitmap);
+                    realPathList.add(path);
+
+                    if (isReadyToStart)
+                        Toast.makeText(activity, "Фотография успешно загружена", Toast.LENGTH_SHORT).show();
+
+                } else
+                    Toast.makeText(activity, "Не получается распознать лицо на фото", Toast.LENGTH_SHORT).show();
+            } else
+                Toast.makeText(activity, "Такой файл уже добавлен", Toast.LENGTH_SHORT).show();
+        }
+        if(!isReadyToStart){
+            checkSize -= 1;
+            if(checkSize == 0) {
+                isReadyToStart = true;
+                Toast.makeText(activity, "Фотографии успешно загружены!", Toast.LENGTH_SHORT).show();
             }
-            else
-                Toast.makeText(activity, "Не получается распознать лицо на фото", Toast.LENGTH_SHORT).show();
         }
         System.out.println("Real Path is " + pathOz.getPath());
     }
+
 
     private void HandleGetTotal(String response) throws ParseException{
         totalSize = MyJson.getTotal(response, "YandexDisk");
@@ -210,6 +239,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         } else
             Toast.makeText(activity, "А папка пустая!", Toast.LENGTH_SHORT).show();
     }
+
 
     private void HomeHandleResponse(String response) throws ParseException {
         System.out.println("RESPONSE IS " + response);
@@ -226,10 +256,12 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
             Toast.makeText(activity, "В папке не удалось обнаружить фотографии", Toast.LENGTH_SHORT).show();
     }
 
+
     @Override
     public void networkAvailable() {
         isOffline = false;
     }
+
 
     @Override
     public void networkUnavailable() {
@@ -254,6 +286,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
             this.callType = callType;
         }
 
+
         @Override
         protected Object doInBackground(Object[] objects) {
             Request request = new Request.Builder()
@@ -272,6 +305,7 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
             }
             return 1;
         }
+
 
         @Override
         protected void onPostExecute(Object o) {

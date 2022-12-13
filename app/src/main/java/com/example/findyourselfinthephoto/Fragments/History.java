@@ -324,20 +324,21 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         listDataHeader = new ArrayList<String>();
         listDataChild = new HashMap<String, List<String>>();
 
-        //Добавляем данные о пунктах списка:
-        for(int i = 0; i < keys.size(); ++i){
-            listDataHeader.add(keys.get(i));
+        if(keys != null) {
+            //Добавляем данные о пунктах списка:
+            for (int i = 0; i < keys.size(); ++i) {
+                listDataHeader.add(keys.get(i));
 
-            ArrayList<String> childItems = new ArrayList<String>();
-            if(names.get(i).isEmpty()){
-                childItems.add("No photos found :(");
-            }
-            else{
-                for(int j = 0; j < names.get(i).size(); ++j){
-                    childItems.add(names.get(i).get(j));
+                ArrayList<String> childItems = new ArrayList<String>();
+                if (names.get(i).isEmpty()) {
+                    childItems.add("No photos found :(");
+                } else {
+                    for (int j = 0; j < names.get(i).size(); ++j) {
+                        childItems.add(names.get(i).get(j));
+                    }
                 }
+                listDataChild.put(listDataHeader.get(i), childItems);
             }
-            listDataChild.put(listDataHeader.get(i), childItems);
         }
     }
 
