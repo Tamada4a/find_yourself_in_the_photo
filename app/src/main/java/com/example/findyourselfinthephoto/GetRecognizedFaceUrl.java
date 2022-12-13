@@ -44,16 +44,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-
-/**
- * Здесь логика следующая:
- * 1) инициализировать CascadeClassifier
- *  1а) натренировать cascade свой
- * 2) передать в FaceRecognizer все фотки для обучения
- * 4) выделить по ссылкам лица с помощью OpenCV
- * 5) найти похожие лица
- * */
-
+/*
+* Класс, отвечающий за распознавание лиц с диска
+* */
 public class GetRecognizedFaceUrl {
 
     private static final String TAG = "GetRecognizedFaceUrl";
