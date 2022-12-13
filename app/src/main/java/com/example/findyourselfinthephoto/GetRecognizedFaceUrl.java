@@ -2,8 +2,10 @@ package com.example.findyourselfinthephoto;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import static org.opencv.imgproc.Imgproc.INTER_AREA;
+import static org.opencv.imgproc.Imgproc.resize;
+
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -12,15 +14,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.example.findyourselfinthephoto.Helpers.PhotoHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfRect;
-import org.opencv.core.Rect;
+import org.opencv.core.Size;
+import org.opencv.face.EigenFaceRecognizer;
+import org.opencv.face.FaceRecognizer;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
@@ -31,9 +34,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import generator.RandomUserAgentGenerator;
@@ -55,27 +58,33 @@ public class GetRecognizedFaceUrl {
 
     private static final String TAG = "GetRecognizedFaceUrl";
 
-    public static final double ACCEPT_LEVEL = 4000.0D;
+    private static final double ACCEPT_LEVEL = 4000.0D;
 
     private static SharedPreferences sharedPref;
     private static SharedPreferences.Editor editor;
 
+    private static double min_size;
 
     private static String gettedURL;
-    public static Set<String> setValues;// сет, состоящий из найденных фоток, где ключ это значение setKey
-    //private static FaceRecognizer faceRecognizer;
+    public static Set<String> setValues;
 
     private static CascadeClassifier cascadeClassifier;
     private static ArrayList<ArrayList> recognized_array;
+    private static FaceRecognizer faceRecognizer;
+
+    private static PhotoHelper photoHelper;
 
     public static void compare_image(ArrayList<String> pathList, ArrayList<ArrayList<String>> UrlArray, Activity activity, String getTedURL) {
         initializeCascadeClassifier(activity);
-        //loadDL4J();
-        //train(pathList);
+        photoHelper = new PhotoHelper(cascadeClassifier);
+
+        train(pathList);
+
         sharedPref = activity.getPreferences(MODE_PRIVATE);
         editor = sharedPref.edit();
 
         gettedURL = getTedURL;
+
         MyRequests requests = new MyRequests(UrlArray, pathList, activity);
         requests.execute();
     }
@@ -112,70 +121,51 @@ public class GetRecognizedFaceUrl {
         }
     }
 
-    private static void train(ArrayList<String> pathList) {
-        /*int size = pathList.size();
+    private static void train(@NonNull ArrayList<String> pathList) {
 
-        MatVector images = new MatVector(size);
+        int size = pathList.size();
 
-        Mat labels = new Mat(size, 1, CV_32SC1);
-        IntBuffer labelsBuf = labels.createBuffer();
+        List<Mat> list = new ArrayList<Mat>(size);
+        int[] labels = new int[size];
 
-        for (int i = 0; i < size; ++i){
-            Mat img = imread(pathList.get(i), IMREAD_GRAYSCALE);
-            org.opencv.core.Mat img2 = Imgcodecs.imread(pathList.get(i));
-            System.out.println("TEST " + img + "\n" + img2);
-            images.put(i, img);
+        ArrayList<Mat> croppedList = new ArrayList<Mat>();
 
-            labelsBuf.put(i, i);
+
+        //Выделяем лицо на фотке
+        for(int i = 0; i < size; ++i){
+            Mat img = Imgcodecs.imread(pathList.get(i));
+            Mat croppedImg = photoHelper.extractFaces(img).get(0);
+            croppedList.add(croppedImg);
         }
 
-        String path = "/storage/emulated/0/Android/data/com.example.findyourselfinthephoto/files/Temp/Screenshot_12.png.webp";
-        Mat testImage = imread(path, IMREAD_GRAYSCALE);
-        System.out.println("TestMat is " + testImage);*/
-        /*faceRecognizer = FisherFaceRecognizer.create();
-        faceRecognizer.train(images, labels);
-        recognize(pathList);*/
-        /*ArrayList<Mat> images = new ArrayList<>();
-        int[] labels = new int[size];
-        Mat grayImg = new Mat();
-        for (int i = 0; i < size; ++i){
-            Mat img = Imgcodecs.imread(pathList.get(i));
 
-            int label = Integer.parseInt(pathList.get(i).split("\\-")[0]);
+        //Находим самый минимальный размер, чтоб потом все фотки привести к одному размеру
+        min_size = croppedList.get(0).size().width;
+        for(int i = 1; i < size; ++i){
+            double curWidth = croppedList.get(i).size().width;
+            if(curWidth < min_size)
+                min_size = curWidth;
+        }
 
-            grayImg.create(img.width(), img.height(),1);
-            Imgproc.cvtColor(img, grayImg, Imgproc.COLOR_BGR2GRAY);
 
-            images.add(grayImg);
+        //Приводим к одному размеру и добавляем к нашему списку данных для тренировки
+        for(int i = 0; i < size; ++i){
+            Mat img = new Mat();
 
+            Size scaleSize = new Size(min_size, min_size);
+            resize(croppedList.get(i), img, scaleSize , 0, 0, INTER_AREA);
+
+            Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+            list.add(img);
             labels[i] = i;
         }
-        MatOfInt intLabels = new MatOfInt();
-        intLabels.fromArray(labels);
-        faceRecognizer.train(images, intLabels);
-        */
 
-
+        MatOfInt labels1 = new MatOfInt();
+        labels1.fromArray(labels);
+        faceRecognizer = EigenFaceRecognizer.create();
+        faceRecognizer.train(list, labels1);
     }
 
-    private static void recognize(ArrayList<String> pathList) {
-        /*String path = "/storage/emulated/0/Android/data/com.example.findyourselfinthephoto/files/Temp/Screenshot_12.png.webp";
-        Mat testImage = imread(path, IMREAD_GRAYSCALE);
-        //int predictedLabel = faceRecognizer.predict_label(testImage);
-        int[] label  = new int[1];
-        double[] reliability = new double[1];
-        faceRecognizer.predict(testImage, label, reliability);
-        int prediction = label[0];
-        double acceptanceLevel = reliability[0];
-
-        String[] names = {"", "Y Know You"};
-        String name;
-
-        if (prediction == 0 *//*-1*//* || acceptanceLevel >= ACCEPT_LEVEL)
-            System.out.println("U were recognized: unknown");*/
-
-        //System.out.println("PREDICTED LABEL IS " + pathList.get(prediction) + "   " + acceptanceLevel);
-    }
 
     private static class MyRequests extends AsyncTask {
 
@@ -185,6 +175,7 @@ public class GetRecognizedFaceUrl {
         private ArrayList<String> pathList;
         private boolean isRecognized = false;
         private Activity _activity;
+
 
         public MyRequests(ArrayList<ArrayList<String>> urlArr, ArrayList<String> pathList, Activity activity) {
             recognized_array = new ArrayList<>();
@@ -199,6 +190,7 @@ public class GetRecognizedFaceUrl {
             this.pathList = pathList;
             _activity = activity;
         }
+
 
         @NonNull
         @Override
@@ -219,40 +211,40 @@ public class GetRecognizedFaceUrl {
 
                     byte[] bytes = response.body().bytes();
 
-                    Mat mat_1 = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
+                    Mat inputMat = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
 
-                    ArrayList<Mat> FacesArray = extractFaces(mat_1);
+                    ArrayList<Mat> FacesArray = photoHelper.extractFaces(inputMat);
 
-                    if (!FacesArray.isEmpty()) {
+                    if(!FacesArray.isEmpty()){
                         isRecognized = false;
-                        for(int a = 0; a < pathList.size() && !isRecognized; ++a) {
-                            Mat mat_2 = Imgcodecs.imread(pathList.get(a));//extractFaces().get(0);
 
-                            for (int j = 0; j < FacesArray.size(); ++j) {
+                        for(int j = 0; j < FacesArray.size() && !isRecognized; ++j){
+                            Mat temp = FacesArray.get(j);
 
-                                Mat src = FacesArray.get(j);
+                            Mat curInputMat = new Mat();
 
-                                Mat hist_1 = new Mat();
-                                Mat hist_2 = new Mat();
+                            Size scaleSize = new Size(min_size, min_size);
+                            resize(temp, curInputMat, scaleSize , 0, 0, INTER_AREA);
 
-                                MatOfFloat ranges = new MatOfFloat(0f, 256f);
-                                MatOfInt histSize = new MatOfInt(1000);
+                            Imgproc.cvtColor(curInputMat, curInputMat, Imgproc.COLOR_BGR2GRAY);
 
-                                Imgproc.calcHist(Arrays.asList(src), new MatOfInt(0), new Mat(), hist_1, histSize, ranges);
-                                Imgproc.calcHist(Arrays.asList(mat_2), new MatOfInt(0), new Mat(), hist_2, histSize, ranges);
+                            int[] label  = new int[1];
+                            double[] reliability = new double[1];
 
-                                double res = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
+                            faceRecognizer.predict(curInputMat, label, reliability);
 
-                                if (res > 0.7) {
-                                    recognized_array.get(0).add(curUrl);
-                                    recognized_array.get(1).add(curDonwloadUrl);
-                                    recognized_array.get(2).add(bytes);
-                                    recognized_array.get(3).add(curName);
-                                    System.out.println("You 've been recognized with " + res + " here\n" + curUrl);
-                                    isRecognized = true;
-                                    break;
-                                }
-                            }
+                            int predictedlabel = label[0];
+                            double acceptanceLevel = reliability[0];
+
+                            if(predictedlabel != -1 && (acceptanceLevel > ACCEPT_LEVEL || acceptanceLevel == 0.0)){
+                                recognized_array.get(0).add(curUrl);
+                                recognized_array.get(1).add(curDonwloadUrl);
+                                recognized_array.get(2).add(bytes);
+                                recognized_array.get(3).add(curName);
+                                isRecognized = true;
+                                System.out.println("You 've been recognized with " + acceptanceLevel + " here\n" + curUrl);
+                            }else
+                                System.out.println("\n"+curUrl + "\n" + acceptanceLevel +"\n");
                         }
                     }
                 } catch (IOException e) {
@@ -261,6 +253,7 @@ public class GetRecognizedFaceUrl {
             }
             return 1;
         }
+
 
         @Override
         protected void onPostExecute(Object o) {
@@ -327,23 +320,6 @@ public class GetRecognizedFaceUrl {
             Toast.makeText(_activity, "Вы были распознаны на " + recognized_array.get(0).size() + " фото!", Toast.LENGTH_SHORT).show();
             System.out.println("\nYou 've been recognized on " + recognized_array.get(0).size() + " photos");
         }
-
-        @NonNull
-        private ArrayList<Mat> extractFaces(Mat image) {
-            ArrayList<Mat> detectedFace = new ArrayList<Mat>();
-
-            MatOfRect faceDetections = new MatOfRect();
-            cascadeClassifier.detectMultiScale(image, faceDetections);
-
-            if (!faceDetections.empty())
-                for (Rect rect : faceDetections.toArray()) {
-                    Mat faceImage = image.submat(rect);
-                    detectedFace.add(faceImage);
-                }
-            return detectedFace;
-        }
-
-
     }
 }
 
