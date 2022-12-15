@@ -6,6 +6,8 @@ import static org.opencv.imgproc.Imgproc.INTER_AREA;
 import static org.opencv.imgproc.Imgproc.resize;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import com.example.findyourselfinthephoto.Helpers.PhotoHelper;
 import com.google.gson.Gson;
@@ -67,6 +70,9 @@ public class GetRecognizedFaceUrl {
 
     private static PhotoHelper photoHelper;
 
+    private static NotificationManager notificationManager;
+
+
     public static void compare_image(ArrayList<String> pathList, ArrayList<ArrayList<String>> UrlArray, Activity activity, String getTedURL) {
         initializeCascadeClassifier(activity);
         photoHelper = new PhotoHelper(cascadeClassifier);
@@ -77,6 +83,8 @@ public class GetRecognizedFaceUrl {
         editor = sharedPref.edit();
 
         gettedURL = getTedURL;
+
+        notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
 
         MyRequests requests = new MyRequests(UrlArray, pathList, activity);
         requests.execute();
@@ -188,11 +196,24 @@ public class GetRecognizedFaceUrl {
         @NonNull
         @Override
         protected Object doInBackground(Object[] objects) {
+            int size = UrlArray.get(0).size();
 
-            for (int i = 0; i < UrlArray.get(0).size(); ++i) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(_activity, "CloudFace_channel")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("Some operation")
+                    .setContentText("Preparing")
+                    .setAutoCancel(true)
+                    .setProgress(size,0, true);
+            notificationManager.notify(1, builder.build());
+
+            for (int i = 0; i < size; ++i) {
                 String curUrl = UrlArray.get(0).get(i);
-                String curDonwloadUrl = UrlArray.get(1).get(i);
+                String curDownloadUrl = UrlArray.get(1).get(i);
                 String curName = UrlArray.get(2).get(i);
+
+                builder.setProgress(size, i + 1, false)
+                        .setContentText(i + 1 + " of " + size);
+                notificationManager.notify(1, builder.build());
 
                 Request request = new Request.Builder()
                         .url(curUrl)
@@ -231,7 +252,7 @@ public class GetRecognizedFaceUrl {
 
                             if(predictedlabel != -1 && (acceptanceLevel > ACCEPT_LEVEL || acceptanceLevel == 0.0)){
                                 recognized_array.get(0).add(curUrl);
-                                recognized_array.get(1).add(curDonwloadUrl);
+                                recognized_array.get(1).add(curDownloadUrl);
                                 recognized_array.get(2).add(bytes);
                                 recognized_array.get(3).add(curName);
                                 isRecognized = true;
@@ -244,6 +265,9 @@ public class GetRecognizedFaceUrl {
                     e.printStackTrace();
                 }
             }
+            builder.setProgress(0, 1, false)
+                    .setContentText("Completed");
+            notificationManager.notify(1, builder.build());
             return 1;
         }
 
