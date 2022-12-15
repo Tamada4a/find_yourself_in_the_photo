@@ -122,7 +122,8 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
                     onGroupLongClick(groupPosition);
                 }
 
-                if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
+                String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
+                if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD && name != "No photos found :(") {
                     onChildLongClick(groupPosition, childPosition);
                 }
                 return false;
@@ -216,8 +217,11 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
         TextView positiveButton = (TextView)alertDialog.findViewById(R.id.info_dialog_positiveButton);
         positiveButton.setText("Скачать");
 
+        TextView neutralButton = (TextView)alertDialog.findViewById(R.id.info_dialog_NeutralButton);
+        neutralButton.setText("Поделиться");
+
         TextView negativeButton = (TextView)alertDialog.findViewById(R.id.info_dialog_NegativeButton);
-        negativeButton.setText("Поделиться");
+        negativeButton.setText("Удалить");
 
         builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -241,7 +245,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
             }
         });
 
-        negativeButton.setOnClickListener(new View.OnClickListener() {
+        neutralButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
@@ -276,6 +280,33 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                dialog.cancel();
+            }
+        });
+
+        negativeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                previewBytes.get(groupPosition).remove(childPosition);
+                downloadLinks.get(groupPosition).remove(childPosition);
+                previewUrls.get(groupPosition).remove(childPosition);
+                names.get(groupPosition).remove(childPosition);
+
+                if(previewBytes.get(groupPosition).size() == 0){
+                    previewBytes.remove(groupPosition);
+                    downloadLinks.remove(groupPosition);
+                    previewUrls.remove(groupPosition);
+                    names.remove(groupPosition);
+                    keys.remove(groupPosition);
+                }
+                saveToSharedPref();
+
+                prepareListData();
+
+                listAdapter = new ExpandableListAdapter(getActivity(), listDataHeader, listDataChild, downloadLinks, previewBytes, previewUrls);
+                expListView.setAdapter(listAdapter);
+
                 dialog.cancel();
             }
         });
