@@ -31,6 +31,7 @@
             android:startY="538.8"
             android:endX="118.58"
             android:endY="422.16"
+			android:angle="45"
             android:type="linear">
           <item android:offset="0" android:color="#FF3E3AFF"/>
           <item android:offset="0.99" android:color="#FFFFFFFF"/>
@@ -45,6 +46,7 @@
             android:startY="-176.5"
             android:endX="87.5"
             android:endY="229"
+			android:angle="45"
             android:type="linear">
           <item android:offset="0.29" android:color="#FF3E3AFF"/>
           <item android:offset="1" android:color="#FFFFFFFF"/>
@@ -59,6 +61,7 @@
             android:startY="16"
             android:endX="333.67"
             android:endY="228.31"
+			android:angle="45"
             android:type="linear">
           <item android:offset="0.16" android:color="#FFABFFE0"/>
           <item android:offset="0.75" android:color="#00FCFFFE"/>
@@ -73,6 +76,7 @@
             android:startY="658"
             android:endX="289.98"
             android:endY="565.33"
+			android:angle="45"
             android:type="linear">
           <item android:offset="0" android:color="#FF3E3AFF"/>
           <item android:offset="0.99" android:color="#FFFFFFFF"/>

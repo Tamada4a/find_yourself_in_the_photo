@@ -36,6 +36,7 @@
             android:startY="-166.55"
             android:endX="391.95"
             android:endY="156.37"
+			android:angle="45"
             android:type="linear">
           <item android:offset="0.16" android:color="#FF3E3AFF"/>
           <item android:offset="1" android:color="#FFFFFFFF"/>

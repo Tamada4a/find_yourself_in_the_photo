@@ -70,8 +70,6 @@ public class GetRecognizedFaceUrl {
 
     private static PhotoHelper photoHelper;
 
-    private static NotificationManager notificationManager;
-
 
     public static void compare_image(ArrayList<String> pathList, ArrayList<ArrayList<String>> UrlArray, Activity activity, String getTedURL) {
         initializeCascadeClassifier(activity);
@@ -83,8 +81,6 @@ public class GetRecognizedFaceUrl {
         editor = sharedPref.edit();
 
         gettedURL = getTedURL;
-
-        notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
 
         MyRequests requests = new MyRequests(UrlArray, pathList, activity);
         requests.execute();
@@ -196,24 +192,11 @@ public class GetRecognizedFaceUrl {
         @NonNull
         @Override
         protected Object doInBackground(Object[] objects) {
-            int size = UrlArray.get(0).size();
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(_activity, "CloudFace_channel")
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("Some operation")
-                    .setContentText("Preparing")
-                    .setAutoCancel(true)
-                    .setProgress(size,0, true);
-            notificationManager.notify(1, builder.build());
-
-            for (int i = 0; i < size; ++i) {
+            for (int i = 0; i < UrlArray.get(0).size(); ++i) {
                 String curUrl = UrlArray.get(0).get(i);
                 String curDownloadUrl = UrlArray.get(1).get(i);
                 String curName = UrlArray.get(2).get(i);
-
-                builder.setProgress(size, i + 1, false)
-                        .setContentText(i + 1 + " of " + size);
-                notificationManager.notify(1, builder.build());
 
                 Request request = new Request.Builder()
                         .url(curUrl)
@@ -265,9 +248,6 @@ public class GetRecognizedFaceUrl {
                     e.printStackTrace();
                 }
             }
-            builder.setProgress(0, 1, false)
-                    .setContentText("Completed");
-            notificationManager.notify(1, builder.build());
             return 1;
         }
 

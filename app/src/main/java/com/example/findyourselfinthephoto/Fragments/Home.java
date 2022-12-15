@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -67,12 +68,14 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
 
     private boolean isOffline = false;
     private boolean isReadyToStart = true;
+    private boolean isCameraPhoto = false;
 
     private PhotoHelper photoHelper;
 
     private Uri photoURI;
 
     private int checkSize;
+    private int photoCounter = 0;
 
 
     @Nullable
@@ -148,8 +151,8 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
         try
         {
             File outputDir = getContext().getCacheDir();
-
-            File photo = new File(outputDir, "photo.jpg");
+            photoCounter += 1;
+            File photo = new File(outputDir, "photo" + photoCounter + ".jpg");
 
             //photo.delete();
             photoURI = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", photo);
@@ -173,24 +176,25 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == RESULT_OK) {
                         Intent data = result.getData();
-
-                        if(data.getClipData() != null) {
-                            ClipData clipData = data.getClipData();
-                            Toast.makeText(activity, "Проверяем фотографии на наличие лиц", Toast.LENGTH_SHORT).show();
-                            isReadyToStart = false;
-                            checkSize = clipData.getItemCount();
-                            for (int i = 0; i < clipData.getItemCount(); ++i) {
-                                Uri ImageUri = clipData.getItemAt(i).getUri();
+                        if(data != null) {
+                            if (data.getClipData() != null) {
+                                ClipData clipData = data.getClipData();
+                                Toast.makeText(activity, "Проверяем фотографии на наличие лиц", Toast.LENGTH_SHORT).show();
+                                isReadyToStart = false;
+                                checkSize = clipData.getItemCount();
+                                for (int i = 0; i < clipData.getItemCount(); ++i) {
+                                    Uri ImageUri = clipData.getItemAt(i).getUri();
+                                    handlePathOz.getRealPath(ImageUri);
+                                }
+                            } else if (data.getData() != null) {
+                                Uri ImageUri = data.getData();
+                                Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
                                 handlePathOz.getRealPath(ImageUri);
                             }
                         }
-                        else if (data.getData() != null) {
-                            Uri ImageUri = data.getData();
-                            Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
-                            handlePathOz.getRealPath(ImageUri);
-                        }
                         else if(photoURI != null){
                             Toast.makeText(activity, "Проверяем фотографию на наличие лиц", Toast.LENGTH_SHORT).show();
+                            isCameraPhoto = true;
                             handlePathOz.getRealPath(photoURI);
                         }
                     }
@@ -208,8 +212,18 @@ public class Home extends Fragment implements HandlePathOzListener.SingleUri, Ne
                     BitmapFactory.Options bmOptions = new BitmapFactory.Options();
                     Bitmap bitmap = BitmapFactory.decodeFile(path, bmOptions);
 
-                    upload_button.addImage(bitmap);
+                    if(isCameraPhoto){
+                        Matrix matrix = new Matrix();
+                        matrix.postRotate(270);
+                        Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                        upload_button.addImage(rotatedBitmap);
+                    }
+                    else
+                        upload_button.addImage(bitmap);
                     realPathList.add(path);
+
+                    isCameraPhoto = false;
+                    photoURI = null;
 
                     if (isReadyToStart)
                         Toast.makeText(activity, "Фотография успешно загружена", Toast.LENGTH_SHORT).show();

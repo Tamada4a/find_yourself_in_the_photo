@@ -12,6 +12,7 @@
           android:startY="-123.55"
           android:endX="161"
           android:endY="89.17"
+		  android:angle="45"
           android:type="linear">
         <item android:offset="0.41" android:color="#00FFFFFF"/>
         <item android:offset="1" android:color="#FF3E3AFF"/>
@@ -26,6 +27,7 @@
           android:startY="0"
           android:endX="165"
           android:endY="53"
+		  android:angle="45"
           android:type="linear">
         <item android:offset="0.47" android:color="#FF1A1346"/>
         <item android:offset="0.63" android:color="#B6191C57"/>
