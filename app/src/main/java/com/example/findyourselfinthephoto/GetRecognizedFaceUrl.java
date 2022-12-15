@@ -199,6 +199,12 @@ public class GetRecognizedFaceUrl {
                 String curName = UrlArray.get(2).get(i);
 
                 Request request = new Request.Builder()
+                        .url(curDownloadUrl)
+                        .header("User-Agent", RandomUserAgentGenerator.getNextMobile())
+                        .build();
+
+                //отдельный запрос на превью-ссылку, чтоб получить потом массив байтов для превью
+                Request previewRequest = new Request.Builder()
                         .url(curUrl)
                         .header("User-Agent", RandomUserAgentGenerator.getNextMobile())
                         .build();
@@ -206,7 +212,14 @@ public class GetRecognizedFaceUrl {
                 try {
                     Response response = client.newCall(request).execute();
 
+                    //Ответ запрос для превью-ссылки, чтоб получить потом массив байтов для превью
+                    Response previewResponse = client.newCall(previewRequest).execute();
+
                     byte[] bytes = response.body().bytes();
+
+                    //массив байтов для отображения превью - отдельный массив, так как меньше весит
+                    //и меньше проблем с оперативкой
+                    byte[] previewBytes = previewResponse.body().bytes();
 
                     Mat inputMat = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_UNCHANGED);
 
@@ -236,7 +249,7 @@ public class GetRecognizedFaceUrl {
                             if(predictedlabel != -1 && (acceptanceLevel > ACCEPT_LEVEL || acceptanceLevel == 0.0)){
                                 recognized_array.get(0).add(curUrl);
                                 recognized_array.get(1).add(curDownloadUrl);
-                                recognized_array.get(2).add(bytes);
+                                recognized_array.get(2).add(previewBytes);
                                 recognized_array.get(3).add(curName);
                                 isRecognized = true;
                                 System.out.println("You 've been recognized with " + acceptanceLevel + " here\n" + curUrl);
