@@ -90,7 +90,7 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
                 if(!isLongClicked) {
                     String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
-                    if (name != "No photos found :(") {
+                    if (!name.equals("No photos found :(")) {
                         if (!isOffilne) {
                             Intent intent = new Intent();
 
@@ -122,9 +122,11 @@ public class History extends Fragment implements NetworkStateReceiver.NetworkSta
                     onGroupLongClick(groupPosition);
                 }
 
-                String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
-                if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD && name != "No photos found :(") {
-                    onChildLongClick(groupPosition, childPosition);
+                if (itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
+                    String name = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition).toString();
+
+                    if(!name.equals("No photos found :("))
+                        onChildLongClick(groupPosition, childPosition);
                 }
                 return false;
             }
