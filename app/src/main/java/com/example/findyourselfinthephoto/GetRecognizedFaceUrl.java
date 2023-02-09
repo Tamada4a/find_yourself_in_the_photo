@@ -6,8 +6,6 @@ import static org.opencv.imgproc.Imgproc.INTER_AREA;
 import static org.opencv.imgproc.Imgproc.resize;
 
 import android.app.Activity;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -15,7 +13,6 @@ import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 
 import com.example.findyourselfinthephoto.Helpers.PhotoHelper;
 import com.google.gson.Gson;

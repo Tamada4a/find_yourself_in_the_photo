@@ -30,7 +30,7 @@ import java.util.ArrayList;
 * */
 public class PhotoHelper {
 
-    private final String TAG = "GetRecognizedFaceUrl";
+    private final String TAG = "PhotoHelper";
 
     private CascadeClassifier _cascadeClassifier;
 
